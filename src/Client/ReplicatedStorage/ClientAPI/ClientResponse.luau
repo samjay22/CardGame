@@ -11,7 +11,7 @@ local _ClientResponseHandlers : {[string] : (any) -> ()} = {}
 function ResponseAsync(data : Types.ResponsePayload)
     if _ClientResponseHandlers[data.requestID] then
         table.insert(_ClientRequestQueue, function() 
-            _ClientResponseHandlers[data.requestID](data.data) 
+            shared[data.requestID] = _ClientResponseHandlers[data.requestID](data.data) 
             _ClientResponseHandlers[data.requestID] = nil
         end)
     end
