@@ -1,3 +1,5 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 --!strict
 --!strict
 local HttpService : HttpService = game:GetService("HttpService")
@@ -6,7 +8,6 @@ local DistributedQueue = require(game.ServerStorage.UtilityModules.DistributedQu
 
 local ClientAPI = {}
 local _Delegates = {}
-local _ServerRequestQueue : {() -> ()} = {}
 
 for _, module in ipairs(script:GetChildren()) do
     if module:IsA("ModuleScript") then
@@ -22,11 +23,23 @@ for _, module in ipairs(script:GetChildren()) do
 end
 
 local NetworkTypes = require(game.ReplicatedStorage.ClientNetwork.Types)
-function ClientAPI.ProcessRequest(endpoint : string, payload : NetworkTypes.ResponsePayload)
+function ClientAPI.ProcessRequest(endpoint : string, player : Player, payload : NetworkTypes.ResponsePayload)
    if _Delegates[endpoint] then
         DistributedQueue.ProcessRequest(function(dt : number)
-            _Delegates[endpoint](payload.data)
+            local okay, result = pcall(_Delegates[endpoint], player, payload.data)
+
+            if not okay then
+                warn(result)
+            end
+
+            --Respond with data
+            game.ReplicatedStorage.ClientNetwork.RemoteEvent:FireClient(player, "ServerResponse", {
+                requestID = payload.requestID,
+                data = result
+            })
         end)
+    else
+        warn("Unknown API: " .. endpoint)
    end 
 end
 

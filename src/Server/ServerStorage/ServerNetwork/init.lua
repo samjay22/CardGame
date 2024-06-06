@@ -13,7 +13,7 @@ function ServerNetwork.FireClient(endpont : string, data : any)
         data = data
     }
 
-    game.ReplicatedStorage.Network.RemoteEvent:FireClient(endpont, payload)
+    game.ReplicatedStorage.ClientNetwork.RemoteEvent:FireClient(endpont, payload)
 end
 
 return ServerNetwork
